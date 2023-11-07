@@ -1,0 +1,52 @@
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class MTServer {
+
+   public static final Integer DEFAULT_PORT = 3000;
+
+   public static void main(String[] args) throws Exception {
+
+      int port = DEFAULT_PORT;
+      String cookieFile = "";
+      switch (args.length) {
+         case 1:
+            cookieFile = args[0];
+            break;
+         case 2:
+            cookieFile = args[0];
+            port = Integer.parseInt(args[1]);
+            break;
+         default:
+            System.err.println("Argument error");
+            System.exit(1);
+      }
+
+      // Load the cookie file
+      System.out.printf("Loading cookie file %s\n", cookieFile);
+      Cookie cookie = new Cookie(cookieFile);
+
+      System.out.printf("Starting server on port %d\n", port);
+      ServerSocket server = new ServerSocket(port);
+
+      // Create a threadpool
+      ExecutorService threadPool = Executors.newFixedThreadPool(2);
+
+      while (true) {
+         // Main thread waits for new connection
+         Socket client = server.accept();
+         System.out.println("New client connection");
+         // Continue waiting for new connection and to handle the client
+         // Pass the client to the thread/worker
+
+         Runnable handler = new ClientHandler(client, cookie);
+         threadPool.submit(handler);
+         // do not use the run() method since that will just be calling the method itself
+         // and not using multi threads
+
+      }
+
+   }
+}
